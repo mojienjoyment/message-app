@@ -142,8 +142,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       </label>
       <button type="submit">Register</button>
     </form>
-
-  <?php endif; ?>
 </div>
 </body>
 </html>
