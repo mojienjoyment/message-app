@@ -2,7 +2,7 @@
 /* ════════════════════════════════════════════════
    PART 1 — CONNECTION (same as save-name.php)
    ════════════════════════════════════════════════ */
-require 'config.php';
+require 'db.php';
 
 try {
   $pdo = new PDO(
@@ -79,19 +79,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       'INSERT INTO users (name, username, email, password) VALUES (?, ?, ?, ?)'
     );
     $stmt->execute([
-      $name,
-      $username,
-      $email,
+      $name, $username, $email,
       password_hash($pass1, PASSWORD_DEFAULT)
     ]);
-    // created_at / updated_at fill in automatically
 
-    // burn the code so nobody else can register with it
     $pdo
       ->prepare('UPDATE invitation_codes SET used = 1 WHERE id = ?')
       ->execute([$invite['id']]);
 
-    $success = true;
+    // ✅ after register → send user to the login page
+    header('Location: login.php?registered=1');
+    exit;
   }
 }
 ?>
@@ -123,20 +121,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
 <div class="card">
   <h1>Create account</h1>
-
-  <?php if ($success): ?>
-    <p class="box ok">Registration complete — welcome aboard! 🎉</p>
-  <?php else: ?>
-
-    <?php if ($errors): ?>
-      <div class="box err">
-        <ul>
-          <?php foreach ($errors as $error): ?>
-            <li><?= htmlspecialchars($error) ?></li>
-          <?php endforeach; ?>
-        </ul>
-      </div>
-    <?php endif; ?>
 
     <form method="post" action="register.php">
       <label>Name
