@@ -4,42 +4,60 @@ require 'db.php';
 
 // Already logged in? Go straight to the panel
 if (isset($_SESSION['user_id'])) {
-    header('Location: panel.php');
-    exit;
+  header('Location: panel.php');
+  exit;
 }
 
 $error = $notice = '';
 $success = false;
 
 if (isset($_GET['registered'])) {
-    $notice = 'Registration successful! Please log in.';
+  $notice = 'Registration successful! Please log in.';
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = trim($_POST['username'] ?? '');
-    $password = $_POST['password'] ?? '';
+  $username = trim($_POST['username'] ?? '');
+  $password = $_POST['password'] ?? '';
+  $success = false;  // default to false for logging
 
-    if ($username === '' || $password === '') {
-        $error = 'Please enter both username and password.';
+  if ($username === '' || $password === '') {
+    $error = 'Please enter both username and password.';
+  } else {
+    $stmt = $pdo->prepare(
+      'SELECT id, name, username, email, password FROM users WHERE username = ?'
+    );
+    $stmt->execute([$username]);
+    $user = $stmt->fetch();
+
+    if ($user && password_verify($password, $user['password'])) {
+      // ✅ add user information to the session
+      $_SESSION['user_id'] = $user['id'];
+      $_SESSION['name'] = $user['name'];
+      $_SESSION['username'] = $user['username'];
+      $_SESSION['email'] = $user['email'];
+
+      $success = true;
     } else {
-        $stmt = $pdo->prepare(
-            'SELECT id, name, username, email, password FROM users WHERE username = ?'
-        );
-        $stmt->execute([$username]);
-        $user = $stmt->fetch();
-
-        if ($user && password_verify($password, $user['password'])) {
-            // ✅ add user information to the session
-            $_SESSION['user_id'] = $user['id'];
-            $_SESSION['name'] = $user['name'];
-            $_SESSION['username'] = $user['username'];
-            $_SESSION['email'] = $user['email'];
-
-            $success = true;  // show "Login successfully", redirect after 3s
-        } else {
-            $error = 'Invalid username or password.';
-        }
+      $error = 'Invalid username or password.';
     }
+  }
+
+  // ── LOG THE ATTEMPT (Success or Fail) ──────────────────
+  $ip = $_SERVER['REMOTE_ADDR'] ?? '';
+  $ua = $_SERVER['HTTP_USER_AGENT'] ?? null;
+  $referrer = $_SERVER['HTTP_REFERER'] ?? null;
+
+  $stmt = $pdo->prepare(
+    'INSERT INTO login_logs (username, ip, user_agent, referrer, login_status)
+         VALUES (?, ?, ?, ?, ?)'
+  );
+  $stmt->execute([
+    $username,
+    $ip,
+    $ua,
+    $referrer,
+    $success ? 200 : 401  // 200 for success, 401 for failure
+  ]);
 }
 ?>
 <!DOCTYPE html>
