@@ -103,6 +103,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <button type="submit">Login</button>
     </form>
     <p style="margin-top:1rem;font-size:.9rem;">No account? <a href="register.php">Register</a></p>
+    <p style="margin-top:.5rem;font-size:.9rem;"><a href="forgot-password.php">Forgot password?</a></p>
 
   <?php endif; ?>
 </div>
