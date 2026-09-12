@@ -79,7 +79,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       'INSERT INTO users (name, username, email, password) VALUES (?, ?, ?, ?)'
     );
     $stmt->execute([
-      $name, $username, $email,
+      $name,
+      $username,
+      $email,
       password_hash($pass1, PASSWORD_DEFAULT)
     ]);
 
@@ -99,37 +101,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
      ════════════════════════════════════════════════ -->
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Register</title>
-<style>
-  body { font-family: system-ui, sans-serif; background: #f4f5f9; display: grid; place-items: center; min-height: 100vh; margin: 0; }
-  .card { background: #fff; padding: 2.2rem; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,.08); width: min(400px, 92vw); }
-  h1 { margin: 0 0 1.4rem; font-size: 1.5rem; }
-  label { display: block; font-size: .85rem; font-weight: 600; margin-bottom: 1rem; }
-  input { display: block; width: 100%; margin-top: .3rem; padding: .6rem .7rem; border: 1px solid #c9cdd8; border-radius: 6px; font-size: 1rem; box-sizing: border-box; }
-  input:focus { outline: 2px solid #4a6cf7; border-color: transparent; }
-  button { width: 100%; padding: .8rem; border: 0; border-radius: 6px; background: #4a6cf7; color: #fff; font-size: 1rem; font-weight: 700; cursor: pointer; }
-  button:hover { background: #3a58d4; }
-  .box { padding: .8rem 1rem; border-radius: 6px; font-size: .9rem; margin-bottom: 1.2rem; }
-  .box.err { background: #fdeceb; color: #b3261e; }
-  .box.ok  { background: #e6f6ea; color: #1c7c33; }
-  .box ul { margin: 0; padding-left: 1.1rem; }
-</style>
+  <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Register</title>
 </head>
-<body>
-<div class="card">
-  <h1>Create account</h1>
+
+<body class="page-auth">
+  <div class="card">
+    <h1>Create account</h1>
 
     <form method="post" action="register.php">
       <label>Name
         <input name="name" required maxlength="60" value="<?= htmlspecialchars($old['name']) ?>">
       </label>
       <label>Username
-        <input name="username" required minlength="3" maxlength="30"
-               pattern="[a-zA-Z0-9_]+" title="Letters, numbers and underscores only"
-               value="<?= htmlspecialchars($old['username']) ?>" placeholder="e.g. jane_doe">
+        <input name="username" required minlength="3" maxlength="30" pattern="[a-zA-Z0-9_]+"
+          title="Letters, numbers and underscores only" value="<?= htmlspecialchars($old['username']) ?>"
+          placeholder="e.g. jane_doe">
       </label>
       <label>Email
         <input type="email" name="email" required value="<?= htmlspecialchars($old['email']) ?>">
@@ -142,6 +133,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       </label>
       <button type="submit">Register</button>
     </form>
-</div>
+  </div>
 </body>
+
 </html>
