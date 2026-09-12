@@ -70,7 +70,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <title>Login</title>
   <?php if ($success): ?>
     <!-- ✅ redirect to panel.php after 3 seconds -->
-    <meta http-equiv="refresh" content="3;url=panel.php">
+    <!-- <meta http-equiv="refresh" content="3;url=panel.php"> -->
+    <script>
+      setTimeout(function () {
+        location.href = 'panel.php';
+      }, 3000);
+    </script>
   <?php endif; ?>
 </head>
 
