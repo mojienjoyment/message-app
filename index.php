@@ -33,7 +33,7 @@ if ($loggedIn) {
   $tweetCount = (int) $stmt->fetchColumn();
 
   $stmt = $pdo->query(
-    'SELECT t.content, t.created_at, t.userid, u.username, u.profile_pic
+    'SELECT t.content, t.created_at, t.userid, u.username, u.profile_pic, u.name
          FROM tweets t JOIN users u ON t.userid = u.id
          ORDER BY t.created_at DESC LIMIT 30'
   );
@@ -107,7 +107,8 @@ if ($loggedIn) {
               <div class="tweet-head">
                 <a class="tweet-user" href="profile.php?userid=<?= (int) $t['userid'] ?>">
                   <img class="tweet-avatar" src="user_profiles/<?= htmlspecialchars($t['profile_pic']) ?>" alt="">
-                  @<?= htmlspecialchars($t['username']) ?>
+                  <span class="tweet-name"><?= htmlspecialchars($t['name']) ?></span>
+                  <span class="tweet-handle">@<?= htmlspecialchars($t['username']) ?></span>
                 </a>
                 <small><?= htmlspecialchars($t['created_at']) ?></small>
               </div>

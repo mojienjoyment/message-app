@@ -144,8 +144,20 @@ footer { text-align: center; color: #999; font-size: .8rem; padding: 1.5rem; }
   display: inline-flex;
   align-items: center;
   gap: .55rem;
-  font-weight: 700;
   text-decoration: none;
+  min-width: 0;
+}
+.tweet-name {
+  font-weight: 700;
+  color: #17224f;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tweet-handle {
+  color: #8a90a3;
+  font-size: .9rem;
+  white-space: nowrap;
 }
 .tweet-user:hover { text-decoration: underline; }
 .tweet-avatar {
