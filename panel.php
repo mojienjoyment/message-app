@@ -57,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_FILES['profile_pic']) && $_FILES['profile_pic']['error'] === UPLOAD_ERR_OK) {
       $file = $_FILES['profile_pic'];
       $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-      $maxSize = 5 * 1024 * 1024; // 5 MB
+      $maxSize = 300 * 1024; // 300 KB
 
       // validate MIME type
       $finfo = finfo_open(FILEINFO_MIME_TYPE);
@@ -277,7 +277,7 @@ $picUrl = 'user_profiles/' . htmlspecialchars($user['profile_pic']);
             <input type="file" id="profile_pic" name="profile_pic" accept="image/jpeg,image/png,image/gif,image/webp"
               hidden onchange="previewImage(event)">
             <br>
-            <p class="hint">JPG, PNG, GIF, or WebP. Max 5 MB.</p>
+            <p class="hint">JPG, PNG, GIF, or WebP. Max 300 KB.</p>
           </div>
         </div>
 
