@@ -33,7 +33,7 @@ if ($loggedIn) {
   $tweetCount = (int) $stmt->fetchColumn();
 
   $stmt = $pdo->query(
-    'SELECT t.content, t.created_at, t.userid, u.username
+    'SELECT t.content, t.created_at, t.userid, u.username, u.profile_pic
          FROM tweets t JOIN users u ON t.userid = u.id
          ORDER BY t.created_at DESC LIMIT 30'
   );
@@ -56,17 +56,17 @@ if ($loggedIn) {
     <a class="brand" href="index.php">MySite</a>
     <nav>
       <a href="all_users.php">Users</a>
-        <?php if ($loggedIn): ?>
+      <?php if ($loggedIn): ?>
         <a href="panel.php">Panel</a>
         <a href="logout.php">Logout</a>
-        <?php else: ?>
+      <?php else: ?>
         <a href="login.php">Login</a>
         <a href="register.php">Register</a>
-        <?php endif; ?>
+      <?php endif; ?>
     </nav>
   </header>
 
-    <?php if (!$loggedIn): ?>
+  <?php if (!$loggedIn): ?>
 
     <main class="hero">
       <h1>Welcome 👋</h1>
@@ -76,16 +76,16 @@ if ($loggedIn) {
       <a class="btn btn-ghost" href="login.php">Login</a>
     </main>
 
-    <?php else: ?>
+  <?php else: ?>
 
     <main class="layout">
 
       <!-- left: composer + feed -->
       <section>
         <div class="card composer">
-            <?php if ($success): ?>
+          <?php if ($success): ?>
             <p class="box ok">✅ <?= htmlspecialchars($success) ?></p><?php endif; ?>
-            <?php if ($error): ?>
+          <?php if ($error): ?>
             <p class="box err"><?= htmlspecialchars($error) ?></p><?php endif; ?>
           <form method="post" action="index.php">
             <textarea name="tweet" maxlength="280" rows="3"
@@ -99,19 +99,22 @@ if ($loggedIn) {
         </div>
 
         <h2 class="feed-title">Recent tweets</h2>
-          <?php if (!$tweets): ?>
+        <?php if (!$tweets): ?>
           <p class="box">No tweets yet. Be the first!</p>
-          <?php else: ?>
-            <?php foreach ($tweets as $t): ?>
+        <?php else: ?>
+          <?php foreach ($tweets as $t): ?>
             <div class="card tweet">
               <div class="tweet-head">
-                <a href="profile.php?userid=<?= (int) $t['userid'] ?>">@<?= htmlspecialchars($t['username']) ?></a>
+                <a class="tweet-user" href="profile.php?userid=<?= (int) $t['userid'] ?>">
+                  <img class="tweet-avatar" src="user_profiles/<?= htmlspecialchars($t['profile_pic']) ?>" alt="">
+                  @<?= htmlspecialchars($t['username']) ?>
+                </a>
                 <small><?= htmlspecialchars($t['created_at']) ?></small>
               </div>
               <p><?= htmlspecialchars($t['content']) ?></p>
             </div>
-            <?php endforeach; ?>
-          <?php endif; ?>
+          <?php endforeach; ?>
+        <?php endif; ?>
       </section>
 
       <!-- right: your profile card -->
@@ -130,7 +133,7 @@ if ($loggedIn) {
 
     </main>
 
-    <?php endif; ?>
+  <?php endif; ?>
 
   <footer>© <?= date('Y') ?> MySite — invitation required</footer>
 
