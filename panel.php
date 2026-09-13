@@ -16,6 +16,7 @@ $error = $success = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $name = trim($_POST['name'] ?? '');
   $email = strtolower(trim($_POST['email'] ?? ''));
+  $bio = trim($_POST['bio'] ?? '');
   $currentPass = $_POST['current_password'] ?? '';
   $newPass = $_POST['new_password'] ?? '';
   $confirmPass = $_POST['confirm_password'] ?? '';
@@ -41,6 +42,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $errors[] = 'Name is required (max 60 characters).';
     if (!filter_var($email, FILTER_VALIDATE_EMAIL))
       $errors[] = 'Enter a valid email address.';
+    if (mb_strlen($bio) > 500)
+      $errors[] = 'Bio must be 500 characters or less.';
 
     // optional password change
     $changePassword = false;
@@ -93,6 +96,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $updates[] = 'email = ?';
       $params[] = $email;
 
+      $updates[] = 'bio = ?';
+      $params[] = $bio;
+
       if ($changePassword) {
         $updates[] = 'password = ?';
         $params[] = password_hash($newPass, PASSWORD_DEFAULT);
@@ -123,7 +129,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 /* ════════════════════════════════════════════════
    PART 2 — FETCH FRESH DATA TO DISPLAY
    ════════════════════════════════════════════════ */
-$stmt = $pdo->prepare('SELECT id, name, username, email, profile_pic, created_at FROM users WHERE id = ?');
+$stmt = $pdo->prepare('SELECT id, name, username, email, profile_pic, bio, created_at FROM users WHERE id = ?');
 $stmt->execute([$_SESSION['user_id']]);
 $user = $stmt->fetch();
 
@@ -278,7 +284,10 @@ $picUrl = 'user_profiles/' . htmlspecialchars($user['profile_pic']);
               hidden onchange="previewImage(event)">
             <br>
             <p class="hint">JPG, PNG, GIF, or WebP. Max 300 KB.</p>
+            <p class="hint"><?= htmlspecialchars($user['bio']) ?>
+            </p>
           </div>
+
         </div>
 
         <div class="grid">
@@ -292,6 +301,10 @@ $picUrl = 'user_profiles/' . htmlspecialchars($user['profile_pic']);
 
         <label>Email
           <input type="email" name="email" required value="<?= htmlspecialchars($user['email']) ?>">
+        </label>
+        <label>Bio
+          <textarea name="bio" rows="3" maxlength="500"
+            placeholder="Tell us about yourself…"><?= htmlspecialchars($user['bio']) ?></textarea>
         </label>
 
         <label>Member since
