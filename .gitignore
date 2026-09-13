@@ -2,3 +2,5 @@ config.php
 db.php
 logs/
 user_profiles/
+config.py
+venv/
