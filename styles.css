@@ -11,8 +11,9 @@ body {
   margin: 0;
 }
 
-a { color: #4a6cf7; }
+[hidden] { display: none !important; }
 
+a { color: #4a6cf7; }
 
 /* =============================================
    2. SHARED COMPONENTS
