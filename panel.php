@@ -52,20 +52,64 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = 'New passwords do not match.';
     }
 
-    if (!$errors) {
-      if ($changePassword) {
-        $stmt = $pdo->prepare(
-          'UPDATE users SET name = ?, email = ?, password = ? WHERE id = ?'
-        );
-        $stmt->execute([$name, $email, password_hash($newPass, PASSWORD_DEFAULT), $_SESSION['user_id']]);
+    // handle profile picture upload
+    $newProfilePic = null;
+    if (isset($_FILES['profile_pic']) && $_FILES['profile_pic']['error'] === UPLOAD_ERR_OK) {
+      $file = $_FILES['profile_pic'];
+      $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+      $maxSize = 5 * 1024 * 1024; // 5 MB
+
+      // validate MIME type
+      $finfo = finfo_open(FILEINFO_MIME_TYPE);
+      $mimeType = finfo_file($finfo, $file['tmp_name']);
+      finfo_close($finfo);
+
+      if (!in_array($mimeType, $allowedTypes)) {
+        $errors[] = 'Only JPG, PNG, GIF, and WebP images are allowed.';
+      } elseif ($file['size'] > $maxSize) {
+        $errors[] = 'Image must be smaller than 5 MB.';
       } else {
-        $stmt = $pdo->prepare(
-          'UPDATE users SET name = ?, email = ? WHERE id = ?'
-        );
-        $stmt->execute([$name, $email, $_SESSION['user_id']]);
+        // generate unique filename
+        $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
+        $safeExt = in_array(strtolower($extension), ['jpg', 'jpeg', 'png', 'gif', 'webp']) ? $extension : 'jpg';
+        $filename = 'user_' . $_SESSION['user_id'] . '_' . time() . '.' . $safeExt;
+        $destination = __DIR__ . '/user_profiles/' . $filename;
+
+        if (move_uploaded_file($file['tmp_name'], $destination)) {
+          $newProfilePic = $filename;
+        } else {
+          $errors[] = 'Failed to upload image.';
+        }
+      }
+    }
+
+    if (!$errors) {
+      $updates = [];
+      $params = [];
+
+      $updates[] = 'name = ?';
+      $params[] = $name;
+
+      $updates[] = 'email = ?';
+      $params[] = $email;
+
+      if ($changePassword) {
+        $updates[] = 'password = ?';
+        $params[] = password_hash($newPass, PASSWORD_DEFAULT);
       }
 
-      // keep the session in sync with the new values
+      if ($newProfilePic !== null) {
+        $updates[] = 'profile_pic = ?';
+        $params[] = $newProfilePic;
+      }
+
+      $params[] = $_SESSION['user_id'];
+
+      $sql = 'UPDATE users SET ' . implode(', ', $updates) . ' WHERE id = ?';
+      $stmt = $pdo->prepare($sql);
+      $stmt->execute($params);
+
+      // keep the session in sync
       $_SESSION['name'] = $name;
       $_SESSION['email'] = $email;
 
@@ -79,7 +123,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 /* ════════════════════════════════════════════════
    PART 2 — FETCH FRESH DATA TO DISPLAY
    ════════════════════════════════════════════════ */
-$stmt = $pdo->prepare('SELECT id, name, username, email, created_at FROM users WHERE id = ?');
+$stmt = $pdo->prepare('SELECT id, name, username, email, profile_pic, created_at FROM users WHERE id = ?');
 $stmt->execute([$_SESSION['user_id']]);
 $user = $stmt->fetch();
 
@@ -88,6 +132,9 @@ if (!$user) {
   header('Location: login.php');
   exit;
 }
+
+// build the image URL
+$picUrl = 'user_profiles/' . htmlspecialchars($user['profile_pic']);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -98,7 +145,6 @@ if (!$user) {
   <title>Panel</title>
   <link rel="stylesheet" href="styles.css">
   <style>
-    /* small page-specific helpers */
     .grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -123,6 +169,49 @@ if (!$user) {
       margin-top: -.6rem;
       margin-bottom: 1rem;
     }
+
+    .profile-pic-section {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px dashed #d0d4e0;
+    }
+
+    .profile-pic-preview {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid #4a6cf7;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, .1);
+    }
+
+    .profile-pic-controls {
+      flex: 1;
+    }
+
+    .profile-pic-controls label {
+      margin-bottom: .5rem;
+    }
+
+    .file-input-wrapper {
+      position: relative;
+      display: inline-block;
+    }
+
+    .file-input-wrapper input[type="file"] {
+      width: 100%;
+      padding: .5rem;
+      border: 1px dashed #c9cdd8;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .file-input-wrapper input[type="file"]:hover {
+      border-color: #4a6cf7;
+    }
   </style>
 </head>
 
@@ -142,7 +231,20 @@ if (!$user) {
         <?php if ($error): ?>
         <p class="box err"><?= htmlspecialchars($error) ?></p><?php endif; ?>
 
-      <form method="post" action="panel.php">
+      <form method="post" action="panel.php" enctype="multipart/form-data">
+
+        <!-- Profile Picture Section -->
+        <div class="profile-pic-section">
+          <img src="<?= $picUrl ?>" alt="Profile" class="profile-pic-preview" id="profilePreview">
+          <div class="profile-pic-controls">
+            <label>Profile Picture</label>
+            <div class="file-input-wrapper">
+              <input type="file" name="profile_pic" accept="image/jpeg,image/png,image/gif,image/webp"
+                onchange="previewImage(event)">
+            </div>
+            <p class="hint">JPG, PNG, GIF, or WebP. Max 5 MB.</p>
+          </div>
+        </div>
 
         <div class="grid">
           <label>Name
@@ -181,6 +283,19 @@ if (!$user) {
       </form>
     </div>
   </div>
+
+  <script>
+    function previewImage(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          document.getElementById('profilePreview').src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+  </script>
 
 </body>
 
