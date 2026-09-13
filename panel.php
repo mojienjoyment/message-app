@@ -180,37 +180,69 @@ $picUrl = 'user_profiles/' . htmlspecialchars($user['profile_pic']);
     }
 
     .profile-pic-preview {
-      width: 120px;
-      height: 120px;
+      width: 110px;
+      height: 110px;
       border-radius: 50%;
       object-fit: cover;
       border: 3px solid #4a6cf7;
       box-shadow: 0 4px 12px rgba(0, 0, 0, .1);
+      flex-shrink: 0;
     }
 
     .profile-pic-controls {
       flex: 1;
     }
 
-    .profile-pic-controls label {
+    .profile-pic-controls>label {
       margin-bottom: .5rem;
     }
 
-    .file-input-wrapper {
-      position: relative;
-      display: inline-block;
-    }
-
-    .file-input-wrapper input[type="file"] {
-      width: 100%;
-      padding: .5rem;
+    /* custom file input — matches the rest of the design */
+    .file-drop {
+      display: flex;
+      align-items: center;
+      gap: .8rem;
+      padding: .55rem .7rem;
       border: 1px dashed #c9cdd8;
       border-radius: 6px;
+      background: #fff;
       cursor: pointer;
+      transition: border-color .2s, background .2s;
     }
 
-    .file-input-wrapper input[type="file"]:hover {
+    .file-drop:hover {
       border-color: #4a6cf7;
+      background: #f6f8ff;
+    }
+
+    .file-btn {
+      background: #4a6cf7;
+      color: #fff;
+      padding: .45rem 1rem;
+      border-radius: 6px;
+      font-size: .85rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      margin: 0;
+      transition: background .2s;
+    }
+
+    .file-btn:hover {
+      background: #3a58d4;
+    }
+
+    .file-name {
+      color: #888;
+      font-size: .85rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .file-name.has-file {
+      color: #17224f;
+      font-weight: 600;
     }
   </style>
 </head>
@@ -226,9 +258,9 @@ $picUrl = 'user_profiles/' . htmlspecialchars($user['profile_pic']);
     <div class="card">
       <h1>Edit Profile</h1>
 
-        <?php if ($success): ?>
+      <?php if ($success): ?>
         <p class="box ok">✅ <?= htmlspecialchars($success) ?></p><?php endif; ?>
-        <?php if ($error): ?>
+      <?php if ($error): ?>
         <p class="box err"><?= htmlspecialchars($error) ?></p><?php endif; ?>
 
       <form method="post" action="panel.php" enctype="multipart/form-data">
@@ -238,10 +270,12 @@ $picUrl = 'user_profiles/' . htmlspecialchars($user['profile_pic']);
           <img src="<?= $picUrl ?>" alt="Profile" class="profile-pic-preview" id="profilePreview">
           <div class="profile-pic-controls">
             <label>Profile Picture</label>
-            <div class="file-input-wrapper">
-              <input type="file" name="profile_pic" accept="image/jpeg,image/png,image/gif,image/webp"
-                onchange="previewImage(event)">
-            </div>
+            <label class="file-drop" for="profile_pic">
+              <span class="file-btn">Choose image</span>
+              <span class="file-name" id="fileName">No file chosen</span>
+            </label>
+            <input type="file" id="profile_pic" name="profile_pic" accept="image/jpeg,image/png,image/gif,image/webp"
+              hidden onchange="previewImage(event)">
             <p class="hint">JPG, PNG, GIF, or WebP. Max 5 MB.</p>
           </div>
         </div>
@@ -287,12 +321,16 @@ $picUrl = 'user_profiles/' . htmlspecialchars($user['profile_pic']);
   <script>
     function previewImage(event) {
       const file = event.target.files[0];
+      const nameEl = document.getElementById('fileName');
       if (file) {
+        nameEl.textContent = file.name;
+        nameEl.classList.add('has-file');
         const reader = new FileReader();
-        reader.onload = function (e) {
-          document.getElementById('profilePreview').src = e.target.result;
-        };
+        reader.onload = e => document.getElementById('profilePreview').src = e.target.result;
         reader.readAsDataURL(file);
+      } else {
+        nameEl.textContent = 'No file chosen';
+        nameEl.classList.remove('has-file');
       }
     }
   </script>
