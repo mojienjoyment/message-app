@@ -101,35 +101,58 @@ button:hover { background: #3a58d4; }
 /* =============================================
    3. PAGE: INDEX (HOME)
    ============================================= */
-body.page-index {
-  display: flex;
-  flex-direction: column;
-}
-
-.hero {
-  max-width: 620px;
-  margin: auto;
-  padding: 3rem 1rem;
-  text-align: center;
-}
+.hero { max-width: 620px; margin: 3.5rem auto; padding: 0 1rem; text-align: center; }
 .hero h1 { font-size: 2rem; margin-bottom: .6rem; }
 .hero p { color: #555; line-height: 1.6; margin-bottom: 1.8rem; }
 
-/* Buttons */
-.btn {
-  display: inline-block;
-  padding: .7rem 1.5rem;
-  border-radius: 6px;
-  text-decoration: none;
-  font-weight: 600;
-  margin: 0 .3rem;
-}
+.btn { display: inline-block; padding: .7rem 1.5rem; border-radius: 6px; text-decoration: none; font-weight: 600; margin: 0 .3rem; }
 .btn-primary { background: #4a6cf7; color: #fff; }
 .btn-primary:hover { background: #3a58d4; }
 .btn-ghost { background: #fff; color: #333; border: 1px solid #c9cdd8; }
 .btn-ghost:hover { background: #eef1f8; }
 
-footer { text-align: center; color: #999; font-size: .8rem; padding: 1rem; }
+footer { text-align: center; color: #999; font-size: .8rem; padding: 1.5rem; }
+
+/* two-column feed layout */
+.layout {
+  max-width: 980px;
+  margin: 1.5rem auto 3rem;
+  padding: 0 1rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+/* composer */
+.composer { padding: 1.4rem; }
+.composer textarea { min-height: 84px; margin-bottom: .7rem; }
+.composer-row { display: flex; justify-content: space-between; align-items: center; }
+.composer-row button { width: auto; padding: .6rem 1.8rem; }
+.char-count { font-size: .8rem; color: #999; }
+.char-count.warn { color: #b3261e; font-weight: 700; }
+
+/* feed */
+.feed-title { margin: 1.6rem 0 .8rem; font-size: .95rem; letter-spacing: .08em; text-transform: uppercase; color: #7a8199; }
+.tweet { padding: .9rem 1.2rem; margin-bottom: .8rem; }
+.tweet-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: .25rem; }
+.tweet-head a { font-weight: 700; text-decoration: none; }
+.tweet-head a:hover { text-decoration: underline; }
+.tweet-head small { color: #999; }
+.tweet p { margin: 0; line-height: 1.5; }
+
+/* sidebar profile card */
+.side-card { padding: 1.5rem 1.2rem; text-align: center; }
+.side-card .avatar { width: 76px; height: 76px; margin-bottom: .6rem; }
+.side-card h3 { margin: 0 0 .1rem; }
+.side-card .username { color: #4a6cf7; font-weight: 600; font-size: .9rem; margin: 0 0 .5rem; }
+.side-card .bio { color: #666; font-size: .85rem; margin: 0 0 .8rem; }
+.side-card .stat { font-size: .85rem; color: #888; margin: 0 0 1rem; }
+.side-card .btn { display: block; margin: .4rem 0 0; }
+
+@media (max-width: 860px) {
+  .layout { grid-template-columns: 1fr; }
+}
 
 
 /* =============================================
