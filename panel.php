@@ -257,7 +257,10 @@ $picUrl = 'user_profiles/' . htmlspecialchars($user['profile_pic']);
 
   <div class="topbar">
     <strong>My Panel</strong>
-    <a href="logout.php">Logout</a>
+    <nav>
+      <a href="profile.php?userid=<?= (int) $_SESSION['user_id'] ?>" target="_blank">My public profile</a>
+      <a href="logout.php">Logout</a>
+    </nav>
   </div>
 
   <div class="wrap">
