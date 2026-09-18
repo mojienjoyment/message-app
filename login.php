@@ -30,6 +30,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $user = $stmt->fetch();
 
     if ($user && password_verify($password, $user['password'])) {
+      // 🛡️ issue a brand-new session ID now that auth succeeded
+      session_regenerate_id(true);
       // ✅ add user information to the session
       $_SESSION['user_id'] = $user['id'];
       $_SESSION['name'] = $user['name'];
