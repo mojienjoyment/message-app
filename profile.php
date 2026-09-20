@@ -2,6 +2,7 @@
 session_start();
 require 'db.php';
 
+$userId = (int) ($_GET['userid'] ?? 0);
 $isOwner = isset($_SESSION['user_id']) && (int) $_SESSION['user_id'] === $userId;
 if ($userId <= 0) {
     http_response_code(400);
@@ -64,10 +65,10 @@ $picUrl = 'user_profiles/' . htmlspecialchars($user['profile_pic'] ?? 'default.p
                 <div class="card tweet">
                     <div class="tweet-top">
                         <p><?= htmlspecialchars($t['content']) ?></p>
-                          <?php if ($isOwner): ?>
+                        <?php if ($isOwner): ?>
                             <a class="tweet-delete" title="Delete tweet" target="_blank"
                                 href="delete.php?post_id=<?= (int) $t['id'] ?>">✕</a>
-                          <?php endif; ?>
+                        <?php endif; ?>
                     </div>
                     <small><?= htmlspecialchars($t['created_at']) ?></small>
                 </div>
