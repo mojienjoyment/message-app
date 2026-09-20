@@ -1,7 +1,8 @@
 <?php
+session_start();
 require 'db.php';
 
-$userId = (int) ($_GET['userid'] ?? 0);
+$isOwner = isset($_SESSION['user_id']) && (int) $_SESSION['user_id'] === $userId;
 if ($userId <= 0) {
     http_response_code(400);
     exit('Invalid user id');
@@ -19,7 +20,7 @@ if (!$user || isset($user['error'])) {
 
 // 2) tweets straight from MySQL
 $stmt = $pdo->prepare(
-    'SELECT content, created_at FROM tweets WHERE userid = ? ORDER BY created_at DESC LIMIT 50'
+    'SELECT id, content, created_at FROM tweets WHERE userid = ? ORDER BY created_at DESC LIMIT 50'
 );
 $stmt->execute([$userId]);
 $tweets = $stmt->fetchAll();
@@ -61,7 +62,13 @@ $picUrl = 'user_profiles/' . htmlspecialchars($user['profile_pic'] ?? 'default.p
         <?php else: ?>
             <?php foreach ($tweets as $t): ?>
                 <div class="card tweet">
-                    <p><?= htmlspecialchars($t['content']) ?></p>
+                    <div class="tweet-top">
+                        <p><?= htmlspecialchars($t['content']) ?></p>
+                          <?php if ($isOwner): ?>
+                            <a class="tweet-delete" title="Delete tweet" target="_blank"
+                                href="delete.php?post_id=<?= (int) $t['id'] ?>">✕</a>
+                          <?php endif; ?>
+                    </div>
                     <small><?= htmlspecialchars($t['created_at']) ?></small>
                 </div>
             <?php endforeach; ?>
