@@ -4,7 +4,6 @@ require 'db.php';
 
 $loggedIn = isset($_SESSION['user_id']);
 $error = $success = '';
-$tweets = [];
 $me = null;
 $tweetCount = 0;
 
@@ -32,12 +31,6 @@ if ($loggedIn) {
   $stmt->execute([$_SESSION['user_id']]);
   $tweetCount = (int) $stmt->fetchColumn();
 
-  $stmt = $pdo->query(
-    'SELECT t.content, t.created_at, t.userid, u.username, u.profile_pic, u.name
-         FROM tweets t JOIN users u ON t.userid = u.id
-         ORDER BY t.created_at DESC LIMIT 30'
-  );
-  $tweets = $stmt->fetchAll();
 }
 ?>
 <!DOCTYPE html>
@@ -97,25 +90,10 @@ if ($loggedIn) {
             </div>
           </form>
         </div>
-
         <h2 class="feed-title">Recent tweets</h2>
-        <?php if (!$tweets): ?>
-          <p class="box">No tweets yet. Be the first!</p>
-        <?php else: ?>
-          <?php foreach ($tweets as $t): ?>
-            <div class="card tweet">
-              <div class="tweet-head">
-                <a class="tweet-user" href="profile.php?userid=<?= (int) $t['userid'] ?>">
-                  <img class="tweet-avatar" src="user_profiles/<?= htmlspecialchars($t['profile_pic']) ?>" alt="">
-                  <span class="tweet-name"><?= htmlspecialchars($t['name']) ?></span>
-                  <span class="tweet-handle">@<?= htmlspecialchars($t['username']) ?></span>
-                </a>
-                <small><?= htmlspecialchars($t['created_at']) ?></small>
-              </div>
-              <p><?= htmlspecialchars($t['content']) ?></p>
-            </div>
-          <?php endforeach; ?>
-        <?php endif; ?>
+        <div id="tweetFeed">
+          <p class="box">Loading tweets…</p>
+        </div>
       </section>
 
       <!-- right: your profile card -->
@@ -143,6 +121,77 @@ if ($loggedIn) {
       const c = document.getElementById('charCount');
       c.textContent = el.value.length + ' / 280';
       c.classList.toggle('warn', el.value.length > 260);
+    }
+
+    /* ── load recent tweets via XHR — content never sits in the page source ── */
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', 'tweets.php', true);
+    xhr.onreadystatechange = function () {
+      if (xhr.readyState === XMLHttpRequest.DONE) {
+        if (xhr.status === 200) {
+          var data = JSON.parse(xhr.responseText);
+          renderTweets(data);
+        } else {
+          document.getElementById('tweetFeed').innerHTML =
+            '<p class="box err">Could not load tweets.</p>';
+        }
+      }
+    };
+    xhr.send();
+
+    function renderTweets(tweets) {
+      var feed = document.getElementById('tweetFeed');
+      feed.innerHTML = '';
+
+      if (!tweets.length) {
+        var empty = document.createElement('p');
+        empty.className = 'box';
+        empty.textContent = 'No tweets yet. Be the first!';
+        feed.appendChild(empty);
+        return;
+      }
+
+      tweets.forEach(function (t) {
+        var card = document.createElement('div');
+        card.className = 'card tweet';
+
+        var head = document.createElement('div');
+        head.className = 'tweet-head';
+
+        var link = document.createElement('a');
+        link.className = 'tweet-user';
+        link.href = 'profile.php?userid=' + encodeURIComponent(t.userid);
+
+        var img = document.createElement('img');
+        img.className = 'tweet-avatar';
+        img.src = 'user_profiles/' + encodeURIComponent(t.profile_pic);
+        img.alt = '';
+
+        var name = document.createElement('span');
+        name.className = 'tweet-name';
+        name.textContent = t.name;              // textContent = XSS-safe
+
+        var handle = document.createElement('span');
+        handle.className = 'tweet-handle';
+        handle.textContent = '@' + t.username;
+
+        link.appendChild(img);
+        link.appendChild(name);
+        link.appendChild(handle);
+
+        var time = document.createElement('small');
+        time.textContent = t.created_at;
+
+        head.appendChild(link);
+        head.appendChild(time);
+
+        var body = document.createElement('p');
+        body.textContent = t.content;           // textContent = XSS-safe
+
+        card.appendChild(head);
+        card.appendChild(body);
+        feed.appendChild(card);
+      });
     }
   </script>
 
