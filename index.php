@@ -137,12 +137,7 @@ if ($loggedIn) {
             alert("Tweet Submitted successfully.");
 
             const data = JSON.parse(xhr.responseText);
-            if (data.success) {
-              alert(data.success);
-            } else {
-              alert(data.error);
-            }
-
+            window.postMessage(data, '*');
 
             setTimeout(function () {
               document.getElementById('tweet_submit_button').disabled = false;
@@ -150,7 +145,7 @@ if ($loggedIn) {
               if (btn && btn.parentNode) {
                 btn.parentNode.removeChild(btn);
               }
-              location.reload(1);
+              // location.reload(1);
             }, 2000);
           }
         }
