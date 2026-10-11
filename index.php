@@ -116,6 +116,8 @@ if ($loggedIn) {
 
   <footer>© <?= date('Y') ?> MySite — invitation required</footer>
 
+  <div id="toast" role="status"></div>
+
   <script>
 
     document.addEventListener('DOMContentLoaded', function () {
@@ -133,21 +135,45 @@ if ($loggedIn) {
         xhr.setRequestHeader('Content-Type', 'application/json');
         xhr.send(JSON.stringify({ tweet_content: tweetContent }));
         xhr.onreadystatechange = function () {
-          if (xhr.readyState === 4) {
-            alert("Tweet Submitted successfully.");
+          if (xhr.readyState === XMLHttpRequest.DONE) {
+            var data = null;
+            try { data = JSON.parse(xhr.responseText); } catch (e) { data = null; }
 
-            const data = JSON.parse(xhr.responseText);
-            window.postMessage(data, '*');
-
-            setTimeout(function () {
-              document.getElementById('tweet_submit_button').disabled = false;
+            if (xhr.status === 200 && data && data.success) {
+              showToast(data.success, 'ok');
+              setTimeout(function () { location.reload(); }, 2200); // let the toast be read, then refresh feed
+            } else {
+              showToast((data && data.error) ? data.error : 'Could not submit tweet.', 'err');
               var btn = document.getElementById('tweet_submit_button');
-              if (btn && btn.parentNode) {
-                btn.parentNode.removeChild(btn);
-              }
-              // location.reload(1);
-            }, 2000);
+              btn.disabled = false;          // let the user fix and retry
+              btn.textContent = 'Tweet';
+            }
           }
+        };
+
+        function showToast(message, type) {
+          var toast = document.getElementById('toast');
+          toast.textContent = message;
+          toast.className = type + ' show';       // 'ok show' or 'err show'
+          clearTimeout(toast._timer);
+          toast._timer = setTimeout(function () {
+            toast.classList.remove('show');       // slide out after 3s
+          }, 3000);
+        }
+        if (xhr.readyState === 4) {
+          alert("Tweet Submitted successfully.");
+
+          const data = JSON.parse(xhr.responseText);
+          window.postMessage(data, '*');
+
+          setTimeout(function () {
+            document.getElementById('tweet_submit_button').disabled = false;
+            var btn = document.getElementById('tweet_submit_button');
+            if (btn && btn.parentNode) {
+              btn.parentNode.removeChild(btn);
+            }
+            // location.reload(1);
+          }, 2000);
         }
       });
 

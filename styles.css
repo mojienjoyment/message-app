@@ -242,3 +242,30 @@ th { color: #666; font-weight: 600; width: 140px; }
    7. PAGE: ALL USERS
    ============================================= */
 body.page-users .wrap { max-width: 900px; }
+
+/* =============================================
+   8. TOAST NOTIFICATIONS
+   ============================================= */
+#toast {
+  position: fixed;
+  top: 1.2rem;
+  right: 1.2rem;
+  z-index: 1000;
+  min-width: 260px;
+  max-width: 90vw;
+  padding: .9rem 1.2rem;
+  border-radius: 8px;
+  color: #fff;
+  font-weight: 600;
+  font-size: .95rem;
+  box-shadow: 0 8px 24px rgba(0,0,0,.18);
+  opacity: 0;
+  transform: translateX(120%);
+  transition: transform .35s ease, opacity .35s ease;
+  pointer-events: none;
+}
+#toast.show { opacity: 1; transform: translateX(0); }
+#toast.ok   { background: #1c7c33; }
+#toast.err  { background: #b3261e; }
+#toast.ok::before  { content: '✅  '; }
+#toast.err::before { content: '⚠️  '; }
