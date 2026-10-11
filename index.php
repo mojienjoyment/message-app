@@ -7,19 +7,19 @@ $error = $success = '';
 $me = null;
 $tweetCount = 0;
 
-/* ── handle tweet submission ── */
-if ($loggedIn && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['tweet'])) {
-  $content = trim($_POST['tweet'] ?? '');
-  if ($content === '') {
-    $error = 'Tweet cannot be empty.';
-  } elseif (mb_strlen($content) > 280) {
-    $error = 'Tweet must be 280 characters or less.';
-  } else {
-    $stmt = $pdo->prepare('INSERT INTO tweets (userid, content) VALUES (?, ?)');
-    $stmt->execute([$_SESSION['user_id'], $content]);
-    $success = 'Tweet posted!';
-  }
-}
+// /* ── handle tweet submission ── */
+// if ($loggedIn && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['tweet'])) {
+//   $content = trim($_POST['tweet'] ?? '');
+//   if ($content === '') {
+//     $error = 'Tweet cannot be empty.';
+//   } elseif (mb_strlen($content) > 280) {
+//     $error = 'Tweet must be 280 characters or less.';
+//   } else {
+//     $stmt = $pdo->prepare('INSERT INTO tweets (userid, content) VALUES (?, ?)');
+//     $stmt->execute([$_SESSION['user_id'], $content]);
+//     $success = 'Tweet posted!';
+//   }
+// }
 
 /* ── data for logged-in view ── */
 if ($loggedIn) {
@@ -81,12 +81,12 @@ if ($loggedIn) {
           <?php if ($error): ?>
             <p class="box err"><?= htmlspecialchars($error) ?></p><?php endif; ?>
           <form method="post" action="index.php">
-            <textarea name="tweet" maxlength="280" rows="3"
+            <textarea id="tweet_content" name="tweet" maxlength="280" rows="3"
               placeholder="What's happening, <?= htmlspecialchars($me['username']) ?>?" oninput="updateCharCount(this)"
               required></textarea>
             <div class="composer-row">
               <span class="char-count" id="charCount">0 / 280</span>
-              <button type="submit">Tweet</button>
+              <button id="tweet_submit_button" type="button" onclick="submittweet()">Tweet</button>
             </div>
           </form>
         </div>
@@ -117,6 +117,39 @@ if ($loggedIn) {
   <footer>© <?= date('Y') ?> MySite — invitation required</footer>
 
   <script>
+
+    document.getElementById('tweet_submit_button').addEventListener('click', function () {
+      document.getElementById('tweet_submit_button').disabled = true;
+      document.getElementById('tweet_submit_button').innerHTML = 'Submitting...';
+      const tweetContent = document.getElementById('tweet_content').value;
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', 'tweets.php', true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.send(JSON.stringify({ tweet_content: tweetContent }));
+      xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4) {
+          alert("Tweet Submitted successfully.");
+
+          const data = JSON.parse(xhr.responseText);
+          if (data.success) {
+            alert(data.success);
+          } else {
+            alert(data.error);
+          }
+
+
+          setTimeout(function () {
+            document.getElementById('tweet_submit_button').disabled = false;
+            var btn = document.getElementById('tweet_submit_button');
+            if (btn && btn.parentNode) {
+              btn.parentNode.removeChild(btn);
+            }
+            location.reload(1);
+          }, 2000);
+        }
+      }
+    });
+
     function updateCharCount(el) {
       const c = document.getElementById('charCount');
       c.textContent = el.value.length + ' / 280';
@@ -194,7 +227,6 @@ if ($loggedIn) {
       });
     }
   </script>
-
 </body>
 
 </html>
