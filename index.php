@@ -118,59 +118,66 @@ if ($loggedIn) {
 
   <script>
 
-    document.getElementById('tweet_submit_button').addEventListener('click', function () {
-      document.getElementById('tweet_submit_button').disabled = true;
-      document.getElementById('tweet_submit_button').innerHTML = 'Submitting...';
-      const tweetContent = document.getElementById('tweet_content').value;
-      const xhr = new XMLHttpRequest();
-      xhr.open('POST', 'tweets.php', true);
-      xhr.setRequestHeader('Content-Type', 'application/json');
-      xhr.send(JSON.stringify({ tweet_content: tweetContent }));
-      xhr.onreadystatechange = function () {
-        if (xhr.readyState === 4) {
-          alert("Tweet Submitted successfully.");
+    document.addEventListener('DOMContentLoaded', function () {
 
-          const data = JSON.parse(xhr.responseText);
-          if (data.success) {
-            alert(data.success);
-          } else {
-            alert(data.error);
-          }
+      window.addEventListener('message', function (event) {
+        console.log('Revieved POst MEssage', event.data)
+      });
 
+      document.getElementById('tweet_submit_button').addEventListener('click', function () {
+        document.getElementById('tweet_submit_button').disabled = true;
+        document.getElementById('tweet_submit_button').innerHTML = 'Submitting...';
+        const tweetContent = document.getElementById('tweet_content').value;
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', 'tweets.php', true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.send(JSON.stringify({ tweet_content: tweetContent }));
+        xhr.onreadystatechange = function () {
+          if (xhr.readyState === 4) {
+            alert("Tweet Submitted successfully.");
 
-          setTimeout(function () {
-            document.getElementById('tweet_submit_button').disabled = false;
-            var btn = document.getElementById('tweet_submit_button');
-            if (btn && btn.parentNode) {
-              btn.parentNode.removeChild(btn);
+            const data = JSON.parse(xhr.responseText);
+            if (data.success) {
+              alert(data.success);
+            } else {
+              alert(data.error);
             }
-            location.reload(1);
-          }, 2000);
+
+
+            setTimeout(function () {
+              document.getElementById('tweet_submit_button').disabled = false;
+              var btn = document.getElementById('tweet_submit_button');
+              if (btn && btn.parentNode) {
+                btn.parentNode.removeChild(btn);
+              }
+              location.reload(1);
+            }, 2000);
+          }
         }
+      });
+
+      function updateCharCount(el) {
+        const c = document.getElementById('charCount');
+        c.textContent = el.value.length + ' / 280';
+        c.classList.toggle('warn', el.value.length > 260);
       }
+
+      /* ── load recent tweets via XHR — content never sits in the page source ── */
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', 'tweets.php', true);
+      xhr.onreadystatechange = function () {
+        if (xhr.readyState === XMLHttpRequest.DONE) {
+          if (xhr.status === 200) {
+            var data = JSON.parse(xhr.responseText);
+            renderTweets(data);
+          } else {
+            document.getElementById('tweetFeed').innerHTML =
+              '<p class="box err">Could not load tweets.</p>';
+          }
+        }
+      };
+      xhr.send();
     });
-
-    function updateCharCount(el) {
-      const c = document.getElementById('charCount');
-      c.textContent = el.value.length + ' / 280';
-      c.classList.toggle('warn', el.value.length > 260);
-    }
-
-    /* ── load recent tweets via XHR — content never sits in the page source ── */
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', 'tweets.php', true);
-    xhr.onreadystatechange = function () {
-      if (xhr.readyState === XMLHttpRequest.DONE) {
-        if (xhr.status === 200) {
-          var data = JSON.parse(xhr.responseText);
-          renderTweets(data);
-        } else {
-          document.getElementById('tweetFeed').innerHTML =
-            '<p class="box err">Could not load tweets.</p>';
-        }
-      }
-    };
-    xhr.send();
 
     function renderTweets(tweets) {
       var feed = document.getElementById('tweetFeed');
