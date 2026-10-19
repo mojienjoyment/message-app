@@ -1,6 +1,5 @@
 <?php
-session_start();
-require 'db.php';
+require 'auth.php';
 
 // must be logged in
 if (!isset($_SESSION['user_id'])) {

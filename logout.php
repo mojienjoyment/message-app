@@ -19,7 +19,10 @@ if (ini_get('session.use_cookies')) {
         $p['httponly']
     );
 }
-
+// 2b) delete the remember-me cookie too
+if (isset($_COOKIE['remember_me'])) {
+    setcookie('remember_me', '', time() - 3600, '/');
+}
 // 3) destroy the session data on the server — the old ID is now dead
 session_destroy();
 

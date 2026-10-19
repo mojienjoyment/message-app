@@ -1,6 +1,5 @@
 <?php
-session_start();
-require 'db.php';
+require 'auth.php';
 
 // 🔒 Guard: no login session → go to login
 if (!isset($_SESSION['user_id'])) {

@@ -1,6 +1,5 @@
 <?php
-session_start();
-require 'db.php';
+require 'auth.php';   // session + db + config + remember-me auto-login
 
 // Already logged in? Go straight to the panel
 if (isset($_SESSION['user_id'])) {
@@ -37,6 +36,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $_SESSION['name'] = $user['name'];
       $_SESSION['username'] = $user['username'];
       $_SESSION['email'] = $user['email'];
+      // ✅ remember me → userid|HMAC cookie, 30 days
+      if (!empty($_POST['remember_me'])) {
+        $cookieValue = $user['id'] . '|' . hash_hmac('sha256', (string) $user['id'], $hmac_key);
+        setcookie('remember_me', $cookieValue, [
+          'expires' => time() + 30 * 24 * 60 * 60,
+          'path' => '/',
+          'httponly' => true,
+          'samesite' => 'Lax',
+        ]);
+      }
 
       $success = true;
     } else {
@@ -45,7 +54,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   }
 
   // ── LOG THE ATTEMPT (Success or Fail) ──────────────────
-  $ip = $_SERVER['REMOTE_ADDR'] ?? '';
+  function get_ip()
+  {
+
+    if (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+      return $_SERVER['HTTP_X_FORWARDED_FOR'];
+    }
+    return $_SERVER['REMOTE_ADDR'] ?? '';
+  }
+  $ip = get_ip();
   $ua = $_SERVER['HTTP_USER_AGENT'] ?? null;
   $referrer = $_SERVER['HTTP_REFERER'] ?? null;
 
@@ -98,7 +115,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <form method="post" action="login.php">
         <label>Username <input name="username" required></label>
         <label>Password <input type="password" name="password" required></label>
+        <label class="remember">
+          <input type="checkbox" name="remember_me" value="1">
+          Remember me for 30 days
+        </label>
         <button type="submit">Login</button>
+
       </form>
       <p style="margin-top:1rem;font-size:.9rem;">No account? <a href="register.php">Register</a></p>
       <p style="margin-top:.5rem;font-size:.9rem;"><a href="forgot-password.php">Forgot password?</a></p>

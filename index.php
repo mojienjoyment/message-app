@@ -1,6 +1,5 @@
 <?php
-session_start();
-require 'db.php';
+require 'auth.php';
 
 $loggedIn = isset($_SESSION['user_id']);
 $error = $success = '';

@@ -269,3 +269,19 @@ body.page-users .wrap { max-width: 900px; }
 #toast.err  { background: #b3261e; }
 #toast.ok::before  { content: '✅  '; }
 #toast.err::before { content: '⚠️  '; }
+
+label.remember {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  font-size: .9rem;
+  font-weight: 500;
+  margin-bottom: 1rem;
+  cursor: pointer;
+}
+label.remember input[type="checkbox"] {
+  display: inline;
+  width: auto;
+  margin: 0;
+  accent-color: #4a6cf7;
+}
